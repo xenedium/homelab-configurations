@@ -1,0 +1,12 @@
+grafana:
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    annotations:
+      cert-manager.io/cluster-issuer: cloudflare-dns-issuer
+    hosts:
+      - <grafana-host>
+    tls:
+      - secretName: grafana-acme-tls
+        hosts:
+          - <grafana-host>

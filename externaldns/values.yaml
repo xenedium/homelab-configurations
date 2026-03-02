@@ -1,0 +1,12 @@
+provider:
+  name: cloudflare
+env:
+  - name: CF_API_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: cloudflare-api-key
+        key: apiKey
+extraArgs:
+  zone-id-filter: <zone-id-filter>
+  domain-filter: <domain-filter>
+  cloudflare-record-comment: provisioned_by_externaldns

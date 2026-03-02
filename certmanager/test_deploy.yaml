@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+#  annotations:
+#    external-dns.alpha.kubernetes.io/hostname: nginx.xene.bid
+#    external-dns.alpha.kubernetes.io/ttl: "120" #optional
+spec:
+  selector:
+    app: nginx
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    # add an annotation indicating the issuer to use.
+    cert-manager.io/cluster-issuer: cloudflare-dns-issuer
+  name: nginx-ingress
+spec:
+  rules:
+  - host: nginx.xene.bid
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: nginx
+            port:
+              number: 80
+  tls: # < placing a host in the TLS config will determine what ends up in the cert's subjectAltNames
+  - hosts:
+    - nginx.xene.bid
+    secretName: nginx-ingress-cert # < cert-manager will store the created certificate in this secret.
