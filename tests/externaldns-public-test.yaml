@@ -1,0 +1,67 @@
+# Public service test — demonstrates CNAME chaining through the DMZ machine.
+#
+# ExternalDNS creates:  nginx.yourdomain.com  CNAME → <ddns-hostname>
+# ddclient keeps:       <ddns-hostname>        A     → current public IP
+#
+# Traffic flow:
+#   internet → <ddns-hostname> → DMZ nginx (port-forward) → Traefik → this service
+#
+# Replace <ddns-hostname> with the hostname ddclient manages on Cloudflare (e.g. home.yourdomain.com).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: whoami
+spec:
+  selector:
+    matchLabels:
+      app: whoami
+  template:
+    metadata:
+      labels:
+        app: whoami
+    spec:
+      containers:
+      - image: traefik/whoami
+        name: whoami
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: whoami
+spec:
+  selector:
+    app: whoami
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: whoami-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: cloudflare-dns-issuer
+    external-dns.alpha.kubernetes.io/hostname: whoami.yourdomain.com
+    external-dns.alpha.kubernetes.io/target: <ddns-hostname>
+    external-dns.alpha.kubernetes.io/ttl: "60"
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: whoami.yourdomain.com
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: whoami
+            port:
+              number: 80
+  tls:
+  - hosts:
+    - whoami.yourdomain.com
+    secretName: whoami-tls
