@@ -67,7 +67,7 @@ echo -e "${BLUE}━━━ ArgoCD ━━━━━━━━━━━━━━━�
 info "Installing ArgoCD..."
 
 kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl apply --server-side --force-conflicts -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
 info "Waiting for ArgoCD server..."
 kubectl wait --namespace argocd \

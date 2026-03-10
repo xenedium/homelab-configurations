@@ -7,6 +7,4 @@ env:
         name: cloudflare-api-token-secret
         key: api-token
 extraArgs:
-  zone-id-filter: <zone-id-filter>
-  domain-filter: <domain-filter>
   cloudflare-record-comment: provisioned_by_externaldns
