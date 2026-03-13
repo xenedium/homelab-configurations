@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portiq-frontend
+  namespace: portiq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: portiq-frontend
+  template:
+    metadata:
+      labels:
+        app: portiq-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: registry.osixlab.com/osixlab/portiq-frontend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+      imagePullSecrets:
+      - name: registry-osixlab
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portiq-backend
+  namespace: portiq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: portiq-backend
+  template:
+    metadata:
+      labels:
+        app: portiq-backend
+    spec:
+      containers:
+      - name: backend
+        image: registry.osixlab.com/osixlab/portiq-backend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8081
+        envFrom:
+        - secretRef:
+            name: portiq-env
+      imagePullSecrets:
+      - name: registry-osixlab
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: portiq-frontend
+  namespace: portiq
+spec:
+  selector:
+    app: portiq-frontend
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: portiq-backend
+  namespace: portiq
+spec:
+  selector:
+    app: portiq-backend
+  ports:
+    - port: 80
+      targetPort: 8081
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: portiq
+  namespace: portiq
+  annotations:
+    cert-manager.io/cluster-issuer: cloudflare-dns-issuer
+    external-dns.alpha.kubernetes.io/hostname: port-iq.me
+    external-dns.alpha.kubernetes.io/target: main.osixlab.com
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
+    external-dns.alpha.kubernetes.io/ttl: "60"
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: port-iq.me
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: portiq-backend
+            port:
+              number: 80
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: portiq-frontend
+            port:
+              number: 80
+  tls:
+  - hosts:
+    - port-iq.me
+    secretName: portiq-tls
