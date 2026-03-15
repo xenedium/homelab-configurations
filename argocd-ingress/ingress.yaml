@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd-server-ingress
+  namespace: argocd
+  annotations:
+    cert-manager.io/cluster-issuer: cloudflare-dns-issuer
+    external-dns.alpha.kubernetes.io/hostname: argo.osixlab.com
+    external-dns.alpha.kubernetes.io/target: oasis.xenedium.com
+    external-dns.alpha.kubernetes.io/ttl: "60"
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: argo.osixlab.com
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: argocd-server
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - argo.osixlab.com
+      secretName: argocd-tls
