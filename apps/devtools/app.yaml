@@ -1,0 +1,112 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devtools-frontend
+  namespace: devtools
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: devtools-frontend
+  template:
+    metadata:
+      labels:
+        app: devtools-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: registry.osixlab.com/osixlab/devtools-frontend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9584
+      imagePullSecrets:
+      - name: registry-osixlab
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devtools-backend
+  namespace: devtools
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: devtools-backend
+  template:
+    metadata:
+      labels:
+        app: devtools-backend
+    spec:
+      containers:
+      - name: backend
+        image: registry.osixlab.com/osixlab/devtools-backend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 2789
+        env:
+        - name: PORT
+          value: "2789"
+        - name: NODE_ENV
+          value: production
+      imagePullSecrets:
+      - name: registry-osixlab
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: devtools-frontend
+  namespace: devtools
+spec:
+  selector:
+    app: devtools-frontend
+  ports:
+    - port: 80
+      targetPort: 9584
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: devtools-backend
+  namespace: devtools
+spec:
+  selector:
+    app: devtools-backend
+  ports:
+    - port: 80
+      targetPort: 2789
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: devtools
+  namespace: devtools
+  annotations:
+    cert-manager.io/cluster-issuer: cloudflare-dns-issuer
+    external-dns.alpha.kubernetes.io/hostname: devtools.osixlab.com
+    external-dns.alpha.kubernetes.io/target: main.osixlab.com
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
+    external-dns.alpha.kubernetes.io/ttl: "60"
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: devtools.osixlab.com
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: devtools-backend
+            port:
+              number: 80
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: devtools-frontend
+            port:
+              number: 80
+  tls:
+  - hosts:
+    - devtools.osixlab.com
+    secretName: devtools-tls

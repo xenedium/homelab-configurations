@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: devtools
+  namespace: argocd
+  annotations:
+    # ArgoCD Image Updater: watch both images for digest changes under :latest
+    argocd-image-updater.argoproj.io/image-list: >-
+      frontend=registry.osixlab.com/osixlab/devtools-frontend:latest,
+      backend=registry.osixlab.com/osixlab/devtools-backend:latest
+    argocd-image-updater.argoproj.io/frontend.update-strategy: digest
+    argocd-image-updater.argoproj.io/backend.update-strategy: digest
+    argocd-image-updater.argoproj.io/frontend.pull-secret: pullsecret:devtools/registry-osixlab
+    argocd-image-updater.argoproj.io/backend.pull-secret: pullsecret:devtools/registry-osixlab
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/xenedium/homelab-configurations.git
+    path: apps/devtools
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: devtools
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

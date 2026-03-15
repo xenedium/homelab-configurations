@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: portiq
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: >-
+      frontend=registry.osixlab.com/osixlab/portiq-frontend:latest,
+      backend=registry.osixlab.com/osixlab/portiq-backend:latest
+    argocd-image-updater.argoproj.io/frontend.update-strategy: digest
+    argocd-image-updater.argoproj.io/backend.update-strategy: digest
+    argocd-image-updater.argoproj.io/frontend.pull-secret: pullsecret:portiq/registry-osixlab
+    argocd-image-updater.argoproj.io/backend.pull-secret: pullsecret:portiq/registry-osixlab
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/xenedium/homelab-configurations.git
+    path: apps/portiq
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: portiq
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
