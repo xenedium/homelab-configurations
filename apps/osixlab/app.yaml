@@ -85,7 +85,7 @@ metadata:
   namespace: osixlab
   annotations:
     cert-manager.io/cluster-issuer: cloudflare-dns-issuer
-    external-dns.alpha.kubernetes.io/hostname: osixlab.com
+    external-dns.alpha.kubernetes.io/hostname: osixlab.com,api.osixlab.com
     external-dns.alpha.kubernetes.io/target: oasis.xenedium.com
     external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
     external-dns.alpha.kubernetes.io/ttl: "60"
@@ -95,13 +95,6 @@ spec:
   - host: osixlab.com
     http:
       paths:
-      - path: /api
-        pathType: Prefix
-        backend:
-          service:
-            name: osixlab-backend
-            port:
-              number: 80
       - path: /
         pathType: Prefix
         backend:
@@ -109,7 +102,18 @@ spec:
             name: osixlab-frontend
             port:
               number: 80
+  - host: api.osixlab.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: osixlab-backend
+            port:
+              number: 80
   tls:
   - hosts:
     - osixlab.com
+    - api.osixlab.com
     secretName: osixlab-tls
