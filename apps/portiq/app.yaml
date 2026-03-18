@@ -80,14 +80,14 @@ metadata:
   namespace: portiq
   annotations:
     cert-manager.io/cluster-issuer: cloudflare-dns-issuer
-    external-dns.alpha.kubernetes.io/hostname: port-iq.me
+    external-dns.alpha.kubernetes.io/hostname: port-iq.osixlab.com
     external-dns.alpha.kubernetes.io/target: oasis.xenedium.com
     external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
     external-dns.alpha.kubernetes.io/ttl: "60"
 spec:
   ingressClassName: traefik
   rules:
-  - host: port-iq.me
+  - host: port-iq.osixlab.com
     http:
       paths:
       - path: /api
@@ -106,5 +106,5 @@ spec:
               number: 80
   tls:
   - hosts:
-    - port-iq.me
-    secretName: portiq-tls
+    - port-iq.osixlab.com
+    secretName: portiq-osixlab-tls
