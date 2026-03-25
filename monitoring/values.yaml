@@ -5,8 +5,8 @@ grafana:
     annotations:
       cert-manager.io/cluster-issuer: cloudflare-dns-issuer
     hosts:
-      - grafana.local.port-iq.me
+      - grafana.osixlab.com
     tls:
       - secretName: grafana-acme-tls
         hosts:
-          - grafana.local.port-iq.me
+          - grafana.osixlab.com
